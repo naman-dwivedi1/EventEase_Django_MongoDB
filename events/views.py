@@ -230,85 +230,115 @@ def userevent(request):
         return JsonResponse({'error': 'Internal Server error'},status=500)
         
 def admin_approve_event(request):
-    user_role=get_user_role_from_jwt(request)
-
-    if user_role != "ADMIN":
-        return JsonResponse({'error': 'Permission denied'}, status=403)
-    
-    if request.method == 'POST':
-        data = json.loads(request.body)
-        approval_id = data.get('approval_id')
-        action = data.get('action')  # 'approve' or 'reject'
-        approval_request = approval_collection.find_one({'_id': ObjectId(approval_id)})
-        if approval_request and approval_request['action']=='post':
-            if action == 'approve':
-                event_collection.insert_one(
-                    pending_events_collection.find_one({'_id': ObjectId(approval_request['event_id'])})
-                )
-                pending_events_collection.delete_one({'_id': ObjectId(approval_request['event_id'])})
-            else:
-                pending_events_collection.delete_one({'_id': ObjectId(approval_request['event_id'])})
-            approval_collection.update_one(
-                {'_id': ObjectId(approval_id)},
-                {'$set': {'approved': action == 'approve'}}
-            )
-            return JsonResponse({'message': 'Action processed successfully.'}, status=200)
+    try:
+        user_role=get_user_role_from_jwt(request)
+        if user_role != "ADMIN":
+            return JsonResponse({'error': 'Permission denied'}, status=403)
         
-        elif approval_request and approval_request['action']=='put':
-            if action == 'approve':
-                filter={'_id': ObjectId(approval_request['event_id'])}
-                result = event_collection.replace_one(filter, pending_events_collection.find_one({'_id': ObjectId(approval_request['event_id'])}))
-                pending_events_collection.delete_one({'_id': ObjectId(approval_request['event_id'])})
-            else:
-                pending_events_collection.delete_one({'_id': ObjectId(approval_request['event_id'])})
-            if result.modified_count > 0:
-                approval_collection.update_one(
-                    {'_id': ObjectId(approval_id)},
-                    {'$set': {'approved': action == 'approve'}}
-                )
-                return JsonResponse({'message': 'Action processed successfully.'}, status=200)
-            else: return JsonResponse({'error': 'Action could not processed successfully.'}, status=400)
+        if request.method == 'POST':
+            data = json.loads(request.body)
+            approval_id = data.get('approval_id')
+            action = data.get('action')  # 'approve' or 'reject'
+            
+            if not approval_id:
+                return JsonResponse({'error': 'approval id is required'},status=400)
+            if not action:
+                return JsonResponse({'error': 'Action is required whether to approve or reject'}, status=400)
+            
+            approval_request = approval_collection.find_one({'_id': ObjectId(approval_id)})
+            if approval_request and approval_request['action']=='post':
+                try:
+                    if action == 'approve':
+                        result=event_collection.insert_one(
+                            pending_events_collection.find_one({'_id': ObjectId(approval_request['event_id'])})
+                        )
+                        if result.inserted_id:
+                            pending_events_collection.delete_one({'_id': ObjectId(approval_request['event_id'])})
+                        else:
+                            return JsonResponse({'error': 'Action could not be processed successfully, Try again'}, status=500)
+                    else:
+                        pending_events_collection.delete_one({'_id': ObjectId(approval_request['event_id'])})
+                    approval_collection.update_one(
+                        {'_id': ObjectId(approval_id)},
+                        {'$set': {'approved': action == 'approve'}}
+                    )
+                    return JsonResponse({'message': 'Action processed successfully.'}, status=200)
+                except:
+                    return JsonResponse({'error': 'Action could not be processed successfully'}, status=500)
+            
+            elif approval_request and approval_request['action']=='put':
+                try:
+                    if action == 'approve':
+                        filter={'_id': ObjectId(approval_request['event_id'])}
+                        result = event_collection.replace_one(filter, pending_events_collection.find_one({'_id': ObjectId(approval_request['event_id'])}))
+                        if result.modified_count>0:
+                            pending_events_collection.delete_one({'_id': ObjectId(approval_request['event_id'])})
+                        else:
+                            return JsonResponse({'error': 'Action could not be processed successfully, Try again'}, status=500)
+                    else:
+                        pending_events_collection.delete_one({'_id': ObjectId(approval_request['event_id'])})
+                    approval_collection.update_one(
+                        {'_id': ObjectId(approval_id)},
+                        {'$set': {'approved': action == 'approve'}}
+                    )
+                    return JsonResponse({'message': 'Action processed successfully.'}, status=200)
+                except:
+                    return JsonResponse({'error': 'Action could not be processed successfully'}, status=500)
 
-        elif approval_request and approval_request['action']=='delete':
-            if action == 'approve':
-                result=event_collection.delete_one(
-                    {'_id': ObjectId(approval_request['event_id'])}
-                )
-                pending_events_collection.delete_one({'_id': ObjectId(approval_request['event_id'])})
+            elif approval_request and approval_request['action']=='delete':
+                try:
+                    if action == 'approve':
+                        result=event_collection.delete_one(
+                            {'_id': ObjectId(approval_request['event_id'])}
+                        )
+                        if result.deleted_count>0:
+                            pending_events_collection.delete_one({'_id': ObjectId(approval_request['event_id'])})
+                        else:
+                            return JsonResponse({'error': 'Action could not be processed successfully, Try again'}, status=500)
+                    else:
+                        pending_events_collection.delete_one({'_id': ObjectId(approval_request['event_id'])})
+                    approval_collection.update_one(
+                        {'_id': ObjectId(approval_id)},
+                        {'$set': {'approved': action == 'approve'}}
+                    )
+                    return JsonResponse({'message': 'Action processed successfully.'}, status=200)
+                except:
+                    return JsonResponse({'error': 'Action could not be processed successfully'}, status=500)
             else:
-                pending_events_collection.delete_one({'_id': ObjectId(approval_request['event_id'])})
-            if result.deleted_count > 0:
-                approval_collection.update_one(
-                    {'_id': ObjectId(approval_id)},
-                    {'$set': {'approved': action == 'approve'}}
-                )
-                return JsonResponse({'message': 'Action processed successfully.'}, status=200)
-            else: return JsonResponse({'error': 'Action could not processed successfully.'}, status=400)
-        else:
-            return JsonResponse({'error': 'Approval request not found.'}, status=404)
-    return HttpResponseNotAllowed(['GET', 'POST', 'PUT', 'DELETE'])
+                return JsonResponse({'error': 'Approval request not found.'}, status=404)
+        return HttpResponseNotAllowed(['GET', 'POST', 'PUT', 'DELETE'])
+    except:
+        return JsonResponse({'error': 'Internal Server Error'}, status=500)
 
 def register_event(request):
-    if request.method == 'POST':
-        try:  
-            user_role=get_user_role_from_jwt(request)
-            if user_role!='USER': return JsonResponse({'error': 'Permission denied'}, status=403)
-            data=json.loads(request.body)
-            event_id=data['event_id']
-            user_id=data['user_id']
-            if not event_id or not user_id:
-                return JsonResponse({'error': 'Event ID and User ID are required'}, status=400)
-            resultEvent = event_collection.update_one(
-                        {'_id': ObjectId(event_id)},
-                        {'$addToSet': {'attendees': user_id}}
-                    )
-            resultUser = user_collection.update_one({'_id': ObjectId(user_id)},{'$addToSet': {'events':event_id}})
-            if resultEvent.modified_count > 0 and resultUser.modified_count>0:
-                return JsonResponse({'message': 'User registered to event successfully'}, status=200)
-            else:
-                return JsonResponse({'error': 'Event not found or user already registered'}, status=404)
-        except Exception as e:
-            return JsonResponse({'error': str(e)}, status=500)
-    return HttpResponseNotAllowed(['GET', 'POST', 'PUT', 'DELETE'])
+    try:
+        if request.method == 'POST':
+            try:  
+                user_role=get_user_role_from_jwt(request)
+                if user_role!='USER': return JsonResponse({'error': 'Permission denied'}, status=403)
+                data=json.loads(request.body)
+                event_id=data['event_id']
+                user_id=data['user_id']
+                if not event_id or not user_id:
+                    return JsonResponse({'error': 'Event ID and User ID are required'}, status=400)
+                
+                resultEvent = event_collection.update_one(
+                            {'_id': ObjectId(event_id)},
+                            {'$addToSet': {'attendees': user_id}}
+                        )
+                if resultEvent.modified_count>0:
+                    resultUser = user_collection.update_one({'_id': ObjectId(user_id)},{'$addToSet': {'events':event_id}})
+                else:
+                    return JsonResponse({'error': 'Failed to register, Try again'}, status=500)
+                
+                if resultEvent.modified_count > 0 and resultUser.modified_count>0:
+                    return JsonResponse({'message': 'User registered to event successfully'}, status=200)
+                else:
+                    return JsonResponse({'error': 'Event not found or user already registered'}, status=404)
+            except Exception as e:
+                return JsonResponse({'error': 'Internal Server Error'}, status=500)
+        return HttpResponseNotAllowed(['GET', 'POST', 'PUT', 'DELETE'])
+    except:
+        return JsonResponse({'error': 'Internal Server Error'}, status=500)
     
     
