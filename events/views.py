@@ -73,6 +73,12 @@ def event(request):
             
             try:
                 data = json.loads(request.body)
+                
+                current_time = datetime.utcnow()
+                event_time = datetime.strptime(data['time'], '%H:%M:%S').time()
+                if event_time <= current_time:
+                    return JsonResponse({'error': 'Please provide appropriate time'}, status=400)
+                
                 nevent=Event(title=data['title'],description=data['description'],venue=data['venue'],date=data['date'],time=data['time'],organizer=data['organizer'])
                 nevent=nevent.to_dict()
                 result = event_collection.insert_one(nevent)
@@ -89,11 +95,18 @@ def event(request):
             
             try:
                 data = json.loads(request.body)
-                event_id = data.get('id')
+                
+                if 'time' in data:
+                    current_time = datetime.utcnow()
+                    event_time = datetime.strptime(data['time'], '%H:%M:%S').time()
+                    if event_time <= current_time:
+                        return JsonResponse({'error': 'Please provide appropriate time'}, status=400)
+                    
+                event_id = data.get('event_id')
                 if not event_id:
                     return JsonResponse({'error': 'Event ID is required'}, status=400)
 
-                update_data = {k: v for k, v in data.items() if k != 'id'}
+                update_data = {k: v for k, v in data.items() if k != 'event_id'}
                 updated_event = event_collection.find_one_and_update(
                     {'_id': ObjectId(event_id)},
                     {'$set': update_data},
@@ -112,7 +125,7 @@ def event(request):
                 return JsonResponse({'error': 'Permission denied'}, status=403)
             try:
                 data = json.loads(request.body)
-                event_id = data.get('id')
+                event_id = data.get('event_id')
                 if not event_id:
                     return JsonResponse({'error': 'Event ID is required'}, status=400)
 
@@ -137,12 +150,18 @@ def userevent(request):
             if user_role != "USER":
                 return JsonResponse({'error': 'Permission denied'}, status=403)
             
-            user_id = request.POST.get('id','')
+            user_id=request.GET.get('id', '')
             if not user_id:
                 return JsonResponse({'error': 'User ID is required'}, status=400)
 
             
             data = json.loads(request.body)
+            
+            current_time = datetime.utcnow()
+            event_time = datetime.strptime(data['time'], '%H:%M:%S').time()
+            if event_time <= current_time:
+                return JsonResponse({'error': 'Please provide appropriate time'}, status=400)
+            
             nevent=Event(title=data['title'],description=data['description'],venue=data['venue'],date=data['date'],time=data['time'],organizer=data['organizer'])
             nevent=nevent.to_dict()
             
@@ -163,6 +182,13 @@ def userevent(request):
             
             try:
                 data = json.loads(request.body)
+                
+                if 'time' in data:
+                    current_time = datetime.utcnow()
+                    event_time = datetime.strptime(data['time'], '%H:%M:%S').time()
+                    if event_time <= current_time:
+                        return JsonResponse({'error': 'Please provide appropriate time'}, status=400)
+                    
                 event_id = data.get('event_id')
                 user_id=data.get('user_id')
                 
