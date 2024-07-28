@@ -46,6 +46,143 @@ def categorize_events(events):
             
     return upcoming_events, past_events
 
+def validate_data(data):
+    if 'title' not in data:
+            return JsonResponse({'error': 'Please provide title'}, status=400)
+    else:
+        title=data.get('title')
+        if title.isdigit():
+            return JsonResponse({'error': 'Title should not be a number'}, status=400)
+        elif len(title)<5:
+            return JsonResponse({'error': 'Title length can not be less than 5'}, status=400)
+        elif len(title)>20:
+            return JsonResponse({'error': 'Title length can not be greater than 20'}, status=400)
+    
+    if 'description' not in data:
+        return JsonResponse({'error': 'Please provide description'}, status=400)
+    else:
+        description=data.get('description')
+        if description.isdigit():
+            return JsonResponse({'error': 'Description should not be a number'}, status=400)
+        elif len(description)<10:
+            return JsonResponse({'error': 'Description length can not be less than 10'}, status=400)
+        elif len(description)>100:
+            return JsonResponse({'error': 'Description length can not be greater than 100'}, status=400)
+    
+    if 'venue' not in data:
+        return JsonResponse({'error': 'Please provide venue'}, status=400)
+    else:
+        venue=data.get('venue')
+        if venue.isdigit():
+            return JsonResponse({'error': 'Venue should not be a number'}, status=400)
+        elif len(venue)<4:
+            return JsonResponse({'error': 'Venue length can not be less than 4'}, status=400)
+        elif len(venue)>100:
+            return JsonResponse({'error': 'Venue length can not be greater than 100'}, status=400)
+        
+    if 'date' not in data:
+        return JsonResponse({'error': 'Please provide date'}, status=400)
+    
+    if 'time' not in data:
+        return JsonResponse({'error': 'Please provide time'}, status=400)
+    
+    current_datetime = datetime.utcnow()
+    try:
+        event_date = datetime.strptime(data['date'], '%Y-%m-%d').date()
+    except:
+        return JsonResponse({'error': 'Please provide date in this format yyyy-dd-mm'}, status=400)
+    
+    try:
+        event_time = datetime.strptime(data['time'], '%H:%M:%S').time()
+    except:
+        return JsonResponse({'error': 'Please provide time in this format hours:minutes:seconds'}, status=400)
+    
+    event_datetime = datetime.combine(event_date, event_time)
+    if event_datetime <= current_datetime:
+        return JsonResponse({'error': 'Please provide appropriate time for the event'}, status=400)
+    
+    return None
+
+def validate_put_data(data,prev_event):
+    if 'title' not in data:
+        pass
+    else:
+        title=data.get('title')
+        if title.isdigit():
+            return JsonResponse({'error': 'Title should not be a number'}, status=400)
+        elif len(title)<5:
+            return JsonResponse({'error': 'Title length can not be less than 5'}, status=400)
+        elif len(title)>20:
+            return JsonResponse({'error': 'Title length can not be greater than 20'}, status=400)
+    
+    if 'description' not in data:
+        pass
+    else:
+        description=data.get('description')
+        if description.isdigit():
+            return JsonResponse({'error': 'Description should not be a number'}, status=400)
+        elif len(description)<10:
+            return JsonResponse({'error': 'Description length can not be less than 10'}, status=400)
+        elif len(description)>100:
+            return JsonResponse({'error': 'Description length can not be greater than 100'}, status=400)
+    
+    if 'venue' not in data:
+        pass
+    else:
+        venue=data.get('venue')
+        if venue.isdigit():
+            return JsonResponse({'error': 'Venue should not be a number'}, status=400)
+        elif len(venue)<4:
+            return JsonResponse({'error': 'Venue length can not be less than 4'}, status=400)
+        elif len(venue)>100:
+            return JsonResponse({'error': 'Venue length can not be greater than 100'}, status=400)
+        
+    
+    if 'date' in data and 'time' in data:
+        current_datetime = datetime.utcnow()
+        try:
+            event_date = datetime.strptime(data['date'], '%Y-%m-%d').date()
+        except:
+            return JsonResponse({'error': 'Please provide date in this format yyyy-dd-mm'}, status=400)
+    
+        try:
+            event_time = datetime.strptime(data['time'], '%H:%M:%S').time()
+        except:
+            return JsonResponse({'error': 'Please provide time in this format hours:minutes:seconds'}, status=400)
+        
+        event_datetime = datetime.combine(event_date, event_time)
+        if event_datetime <= current_datetime:
+            return JsonResponse({'error': 'Please provide appropriate time for the event'}, status=400)
+        
+    elif 'date' in data and 'time' not in data:
+        current_datetime = datetime.utcnow()
+        try:
+            event_date = datetime.strptime(data['date'], '%Y-%m-%d').date()
+        except:
+            return JsonResponse({'error': 'Please provide date in this format yyyy-dd-mm'}, status=400)
+    
+        event_time = datetime.strptime(prev_event.time, '%H:%M:%S').time()
+        event_datetime = datetime.combine(event_date, event_time)
+        if event_datetime <= current_datetime:
+            return JsonResponse({'error': 'Please provide appropriate time for the event'}, status=400)
+        
+    elif 'time' in data and 'date' not in data:
+        current_datetime = datetime.utcnow()
+        try:
+            event_date = datetime.strptime(prev_event.date, '%Y-%m-%d').date()
+        except: return JsonResponse({'error': 'Please provide time in this format hours:minutes:seconds'}, status=400)
+        
+        try:
+            event_time = datetime.strptime(data['time'], '%H:%M:%S').time()
+        except:
+            return JsonResponse({'error': 'Please provide time in this format hours:minutes:seconds'}, status=400)
+        
+        event_datetime = datetime.combine(event_date, event_time)
+        if event_datetime <= current_datetime:
+            return JsonResponse({'error': 'Please provide appropriate time for the event'}, status=400)
+        
+    return None
+    
 def display_events(request):
     
     logger.info("This is an informational message.")
@@ -79,59 +216,9 @@ def event(request):
         
         data = json.loads(request.body)
         
-        if 'title' not in data:
-            return JsonResponse({'error': 'Please provide title'}, status=400)
-        else:
-            title=data.get('title')
-            if title.isdigit():
-                return JsonResponse({'error': 'Title should not be a number'}, status=400)
-            elif len(title)<5:
-                return JsonResponse({'error': 'Title length can not be less than 5'}, status=400)
-            elif len(title)>20:
-                return JsonResponse({'error': 'Title length can not be greater than 20'}, status=400)
-        
-        if 'description' not in data:
-            return JsonResponse({'error': 'Please provide description'}, status=400)
-        else:
-            description=data.get('description')
-            if description.isdigit():
-                return JsonResponse({'error': 'Description should not be a number'}, status=400)
-            elif len(description)<10:
-                return JsonResponse({'error': 'Description length can not be less than 10'}, status=400)
-            elif len(description)>100:
-                return JsonResponse({'error': 'Description length can not be greater than 100'}, status=400)
-        
-        if 'venue' not in data:
-            return JsonResponse({'error': 'Please provide venue'}, status=400)
-        else:
-            venue=data.get('venue')
-            if venue.isdigit():
-                return JsonResponse({'error': 'Venue should not be a number'}, status=400)
-            elif len(venue)<4:
-                return JsonResponse({'error': 'Venue length can not be less than 4'}, status=400)
-            elif len(venue)>100:
-                return JsonResponse({'error': 'Venue length can not be greater than 100'}, status=400)
-            
-        if 'date' not in data:
-            return JsonResponse({'error': 'Please provide date'}, status=400)
-        
-        if 'time' not in data:
-            return JsonResponse({'error': 'Please provide time'}, status=400)
-        
-        current_datetime = datetime.utcnow()
-        try:
-            event_date = datetime.strptime(data['date'], '%Y-%m-%d').date()
-        except:
-            return JsonResponse({'error': 'Please provide date in this format yyyy-dd-mm'}, status=400)
-        
-        try:
-            event_time = datetime.strptime(data['time'], '%H:%M:%S').time()
-        except:
-            return JsonResponse({'error': 'Please provide time in this format hours:minutes:seconds'}, status=400)
-        
-        event_datetime = datetime.combine(event_date, event_time)
-        if event_datetime <= current_datetime:
-            return JsonResponse({'error': 'Please provide appropriate time for the event'}, status=400)
+        response=validate_data(data=data)
+        if response is not None:
+            return response
         
         event = Event(
             title=data['title'],
@@ -158,82 +245,11 @@ def event(request):
         except:
             return JsonResponse({'error': 'Event not found'}, status=404)
         
-        if 'title' not in data:
-            pass
-        else:
-            title=data.get('title')
-            if title.isdigit():
-                return JsonResponse({'error': 'Title should not be a number'}, status=400)
-            elif len(title)<5:
-                return JsonResponse({'error': 'Title length can not be less than 5'}, status=400)
-            elif len(title)>20:
-                return JsonResponse({'error': 'Title length can not be greater than 20'}, status=400)
+        response=validate_put_data(data=data,prev_event=prev_event)
         
-        if 'description' not in data:
-            pass
-        else:
-            description=data.get('description')
-            if description.isdigit():
-                return JsonResponse({'error': 'Description should not be a number'}, status=400)
-            elif len(description)<10:
-                return JsonResponse({'error': 'Description length can not be less than 10'}, status=400)
-            elif len(description)>100:
-                return JsonResponse({'error': 'Description length can not be greater than 100'}, status=400)
+        if response is not None:
+            return response
         
-        if 'venue' not in data:
-            pass
-        else:
-            venue=data.get('venue')
-            if venue.isdigit():
-                return JsonResponse({'error': 'Venue should not be a number'}, status=400)
-            elif len(venue)<4:
-                return JsonResponse({'error': 'Venue length can not be less than 4'}, status=400)
-            elif len(venue)>100:
-                return JsonResponse({'error': 'Venue length can not be greater than 100'}, status=400)
-            
-        
-        if 'date' in data and 'time' in data:
-            current_datetime = datetime.utcnow()
-            try:
-                event_date = datetime.strptime(data['date'], '%Y-%m-%d').date()
-            except:
-                return JsonResponse({'error': 'Please provide date in this format yyyy-dd-mm'}, status=400)
-        
-            try:
-                event_time = datetime.strptime(data['time'], '%H:%M:%S').time()
-            except:
-                return JsonResponse({'error': 'Please provide time in this format hours:minutes:seconds'}, status=400)
-            
-            event_datetime = datetime.combine(event_date, event_time)
-            if event_datetime <= current_datetime:
-                return JsonResponse({'error': 'Please provide appropriate time for the event'}, status=400)
-            
-        elif 'date' in data and 'time' not in data:
-            current_datetime = datetime.utcnow()
-            try:
-                event_date = datetime.strptime(data['date'], '%Y-%m-%d').date()
-            except:
-                return JsonResponse({'error': 'Please provide date in this format yyyy-dd-mm'}, status=400)
-        
-            event_time = datetime.strptime(prev_event.time, '%H:%M:%S').time()
-            event_datetime = datetime.combine(event_date, event_time)
-            if event_datetime <= current_datetime:
-                return JsonResponse({'error': 'Please provide appropriate time for the event'}, status=400)
-            
-        elif 'time' in data and 'date' not in data:
-            current_datetime = datetime.utcnow()
-            try:
-                event_date = datetime.strptime(prev_event.date, '%Y-%m-%d').date()
-            except: return JsonResponse({'error': 'Please provide time in this format hours:minutes:seconds'}, status=400)
-            
-            try:
-                event_time = datetime.strptime(data['time'], '%H:%M:%S').time()
-            except:
-                return JsonResponse({'error': 'Please provide time in this format hours:minutes:seconds'}, status=400)
-            
-            event_datetime = datetime.combine(event_date, event_time)
-            if event_datetime <= current_datetime:
-                return JsonResponse({'error': 'Please provide appropriate time for the event'}, status=400)
         update_data = {k: v for k, v in data.items() if k != 'event_id'}
         Event.objects.filter(id=event_id).update(**update_data)
         return JsonResponse({'message': 'Event updated successfully'}, status=200)
@@ -266,59 +282,10 @@ def userevent(request):
         
         data = json.loads(request.body)
         
-        if 'title' not in data:
-            return JsonResponse({'error': 'Please provide title'}, status=400)
-        else:
-            title=data.get('title')
-            if title.isdigit():
-                return JsonResponse({'error': 'Title should not be a number'}, status=400)
-            elif len(title)<5:
-                return JsonResponse({'error': 'Title length can not be less than 5'}, status=400)
-            elif len(title)>20:
-                return JsonResponse({'error': 'Title length can not be greater than 20'}, status=400)
+        response=validate_data(data=data)
         
-        if 'description' not in data:
-            return JsonResponse({'error': 'Please provide description'}, status=400)
-        else:
-            description=data.get('description')
-            if description.isdigit():
-                return JsonResponse({'error': 'Description should not be a number'}, status=400)
-            elif len(description)<10:
-                return JsonResponse({'error': 'Description length can not be less than 10'}, status=400)
-            elif len(description)>100:
-                return JsonResponse({'error': 'Description length can not be greater than 100'}, status=400)
-        
-        if 'venue' not in data:
-            return JsonResponse({'error': 'Please provide venue'}, status=400)
-        else:
-            venue=data.get('venue')
-            if venue.isdigit():
-                return JsonResponse({'error': 'Venue should not be a number'}, status=400)
-            elif len(venue)<4:
-                return JsonResponse({'error': 'Venue length can not be less than 4'}, status=400)
-            elif len(venue)>100:
-                return JsonResponse({'error': 'Venue length can not be greater than 100'}, status=400)
-            
-        if 'date' not in data:
-            return JsonResponse({'error': 'Please provide date'}, status=400)
-        
-        if 'time' not in data:
-            return JsonResponse({'error': 'Please provide time'}, status=400)
-        
-        current_datetime = datetime.utcnow()
-        try:
-            event_date = datetime.strptime(data['date'], '%Y-%m-%d').date()
-        except:
-            return JsonResponse({'error': 'Please provide date in this format yyyy-dd-mm'}, status=400)
-    
-        try:
-            event_time = datetime.strptime(data['time'], '%H:%M:%S').time()
-        except:
-            return JsonResponse({'error': 'Please provide time in this format hours:minutes:seconds'}, status=400)
-        
-        event_datetime = datetime.combine(event_date, event_time)
-        if event_datetime <= current_datetime:
-            return JsonResponse({'error': 'Please provide appropriate time for the event'}, status=400)
+        if response is not None:
+            return response
         
         event = PendingEvents(
             title=data['title'],
@@ -358,82 +325,11 @@ def userevent(request):
         except:
             return JsonResponse({'error': 'Event not found'}, status=404)
         
-        if 'title' not in data:
-            pass
-        else:
-            title=data.get('title')
-            if title.isdigit():
-                return JsonResponse({'error': 'Title should not be a number'}, status=400)
-            elif len(title)<5:
-                return JsonResponse({'error': 'Title length can not be less than 5'}, status=400)
-            elif len(title)>20:
-                return JsonResponse({'error': 'Title length can not be greater than 20'}, status=400)
+        response=validate_put_data(data=data,prev_event=event)
         
-        if 'description' not in data:
-            pass
-        else:
-            description=data.get('description')
-            if description.isdigit():
-                return JsonResponse({'error': 'Description should not be a number'}, status=400)
-            elif len(description)<10:
-                return JsonResponse({'error': 'Description length can not be less than 10'}, status=400)
-            elif len(description)>100:
-                return JsonResponse({'error': 'Description length can not be greater than 100'}, status=400)
+        if response is not None:
+            return response
         
-        if 'venue' not in data:
-            pass
-        else:
-            venue=data.get('venue')
-            if venue.isdigit():
-                return JsonResponse({'error': 'Venue should not be a number'}, status=400)
-            elif len(venue)<4:
-                return JsonResponse({'error': 'Venue length can not be less than 4'}, status=400)
-            elif len(venue)>100:
-                return JsonResponse({'error': 'Venue length can not be greater than 100'}, status=400)
-        
-        if 'date' in data and 'time' in data:
-            current_datetime = datetime.utcnow()
-            try:
-                event_date = datetime.strptime(data['date'], '%Y-%m-%d').date()
-            except:
-                return JsonResponse({'error': 'Please provide date in this format yyyy-dd-mm'}, status=400)
-        
-            try:
-                event_time = datetime.strptime(data['time'], '%H:%M:%S').time()
-            except:
-                return JsonResponse({'error': 'Please provide time in this format hours:minutes:seconds'}, status=400)
-            
-            event_datetime = datetime.combine(event_date, event_time)
-            if event_datetime <= current_datetime:
-                return JsonResponse({'error': 'Please provide appropriate time for the event'}, status=400)
-            
-        elif 'date' in data and 'time' not in data:
-            current_datetime = datetime.utcnow()
-            try:
-                event_date = datetime.strptime(data['date'], '%Y-%m-%d').date()
-            except:
-                return JsonResponse({'error': 'Please provide date in this format yyyy-dd-mm'}, status=400)
-        
-            event_time = datetime.strptime(event.time, '%H:%M:%S').time()
-            event_datetime = datetime.combine(event_date, event_time)
-            if event_datetime <= current_datetime:
-                return JsonResponse({'error': 'Please provide appropriate time for the event'}, status=400)
-            
-        elif 'time' in data and 'date' not in data:
-            current_datetime = datetime.utcnow()
-            try:
-                event_date = datetime.strptime(event.date, '%Y-%m-%d').date()
-            except: return JsonResponse({'error': 'Please provide time in this format hours:minutes:seconds'}, status=400)
-            
-            try:
-                event_time = datetime.strptime(data['time'], '%H:%M:%S').time()
-            except:
-                return JsonResponse({'error': 'Please provide time in this format hours:minutes:seconds'}, status=400)
-            
-            event_datetime = datetime.combine(event_date, event_time)
-            if event_datetime <= current_datetime:
-                return JsonResponse({'error': 'Please provide appropriate time for the event'}, status=400)
-
         if event.organizer == user_id:
             pending_event = PendingEvents(
                 event_id=event.id,
