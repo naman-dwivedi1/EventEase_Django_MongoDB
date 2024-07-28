@@ -12,12 +12,8 @@ from authentication.models import User
 from django.shortcuts import get_object_or_404
 import logging
 
-import logging.config
-from django.conf import settings
+logger = logging.getLogger("events.views")
 
-logging.config.dictConfig(settings.LOGGING)
-logger = logging.getLogger('EventEaseSQL')
-logger.debug('Logging configuration applied successfully')
 load_dotenv()
 
 def get_user_role_from_jwt(request):
@@ -51,8 +47,13 @@ def categorize_events(events):
     return upcoming_events, past_events
 
 def display_events(request):
-    logger.info('All is good!')
-    print("reaching here")
+    
+    logger.info("This is an informational message.")
+    logger.debug("This is a debug message.")
+    logger.warning("This is a warning message.")
+    logger.error("This is an error message.")
+    logger.critical("This is a critical message.")
+    
     if request.method == 'GET':
         event_id = request.GET.get('id', '')
         if event_id == '':
