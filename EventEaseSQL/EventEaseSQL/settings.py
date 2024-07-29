@@ -90,13 +90,27 @@ DATABASES = {
         'NAME': 'db',
         'USER': 'user',
         'PASSWORD': 'password',
-        'HOST': 'db',
+        'HOST': 'localhost',
         'PORT': '5432',
-        # 'TEST': {
-        #     'NAME': 'test_database',  # Name for the test database
-        # },
+        'TEST': {
+            'NAME': 'test_database',  # Name for the test database
+        },
     }
 }
+
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.mysql',
+#         'NAME': 'EventEase',
+#         'USER': 'root',
+#         'PASSWORD': 'Enemendwdi1001',
+#         'HOST': 'localhost',
+#         'PORT': '3306',
+#         # 'TEST': {
+#         #     'NAME': 'test_database',  # Name for the test database
+#         # },
+#     }
+# }
 
 LOGGING = {
     'version': 1,
