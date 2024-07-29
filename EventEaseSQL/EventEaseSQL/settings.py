@@ -79,17 +79,22 @@ pymysql.install_as_MySQLdb()
 # Database
 # https://docs.djangoproject.com/en/5.0/ref/settings/#databases
 
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
+
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'EventEase',
-        'USER': 'root',
-        'PASSWORD': 'Enemendwdi1001',
-        'HOST': 'localhost',
-        'PORT': '3306',
-        'TEST': {
-            'NAME': 'test_database',  # Name for the test database
-        },
+        'NAME': 'db',
+        'USER': 'user',
+        'PASSWORD': 'password',
+        'HOST': 'db',
+        'PORT': '5432',
+        # 'TEST': {
+        #     'NAME': 'test_database',  # Name for the test database
+        # },
     }
 }
 

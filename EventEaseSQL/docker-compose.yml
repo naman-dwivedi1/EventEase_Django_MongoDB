@@ -1,0 +1,46 @@
+version: '3.3'
+services:
+  db:
+    image: mysql
+    restart: always
+    environment:
+      MYSQL_DATABASE: 'db'
+      # So you don't have to use root, but you can if you like
+      MYSQL_USER: 'user'
+      # You can use whatever password you like
+      MYSQL_PASSWORD: 'password'
+      # Password for root access
+      MYSQL_ROOT_PASSWORD: 'password'
+    ports:
+      # <Port exposed> : <MySQL Port running inside container>
+      - '5432:3306'
+    expose:
+      # Opens port 3306 on the container
+      - '5432'
+      # Where our data will be persisted
+    volumes:
+      - my-db:/var/lib/mysql
+
+
+  web:
+    build: .
+    command: >
+      bash -c "python /app/manage.py makemigrations &&
+               python /app/manage.py migrate &&
+               python /app/manage.py runserver 0.0.0.0:8000"
+    volumes:
+      - .:/app
+    ports:  
+      - "8000:8000"
+    depends_on:
+      - db
+  #   environment:
+  #     - DJANGO_DB_HOST=localhost
+  #     - DJANGO_DB_PORT=3306
+  #     - DJANGO_DB_NAME=db
+  #     - DJANGO_DB_USER=user
+  #     - DJANGO_DB_PASSWORD=password
+
+# Names our volume
+volumes:
+  my-db:
