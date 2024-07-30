@@ -12,7 +12,7 @@ from authentication.models import User
 from django.shortcuts import get_object_or_404
 import logging
 
-logger = logging.getLogger("events.views")
+logger = logging.getLogger('django')
 
 load_dotenv()
 
@@ -184,13 +184,6 @@ def validate_put_data(data,prev_event):
     return None
     
 def display_events(request):
-    
-    logger.info("This is an informational message.")
-    logger.debug("This is a debug message.")
-    logger.warning("This is a warning message.")
-    logger.error("This is an error message.")
-    logger.critical("This is a critical message.")
-    
     if request.method == 'GET':
         event_id = request.GET.get('id', '')
         if event_id == '':
@@ -229,6 +222,7 @@ def event(request):
             organizer=data['organizer']
         )
         event.save()
+        logger.info("event created successfuly")
         return JsonResponse({'message': 'Event registered successfully'}, status=201)
         
     elif request.method == 'PUT':
@@ -252,6 +246,7 @@ def event(request):
         
         update_data = {k: v for k, v in data.items() if k != 'event_id'}
         Event.objects.filter(id=event_id).update(**update_data)
+        logger.info("event updated successfuly")
         return JsonResponse({'message': 'Event updated successfully'}, status=200)
 
     elif request.method == 'DELETE':
@@ -263,6 +258,7 @@ def event(request):
             return JsonResponse({'error': 'Event ID is required'}, status=400)
         event = Event.objects.filter(id=event_id).delete()
         if event[0] == 1:
+            logger.info("event deleted successfuly")
             return JsonResponse({'message': 'Event deleted successfully'}, status=200)
         else:
             return JsonResponse({'error': 'Event not found'}, status=404)
@@ -304,6 +300,7 @@ def userevent(request):
         )
         
         approval_request.save()
+        logger.info("event created successfuly by the user")
         return JsonResponse({'message': 'Event posted successfully. Awaiting admin approval.'}, status=201)
         
     elif request.method == 'PUT':
@@ -353,7 +350,7 @@ def userevent(request):
                 action='put'
             )
             approval_request.save()
-            
+            logger.info("event updated successfuly by the user")
             return JsonResponse({'message': 'Update request submitted. Awaiting admin approval.'}, status=200)
         else:
             return JsonResponse({'error': 'User not authorized'}, status=403)
@@ -384,7 +381,7 @@ def userevent(request):
                 action='delete'
             )
             approval_request.save()
-            
+            logger.info("event deleted successfuly by the user")
             return JsonResponse({'message': 'Delete request submitted. Awaiting admin approval.'}, status=200)
         else:
             return JsonResponse({'error': 'User not authorized.'}, status=403)
@@ -454,9 +451,9 @@ def admin_approve_event(request):
                     
             else:
                 return JsonResponse({'error': 'Unknown action type'}, status=400)
-                
+            logger.info("event approval action taken")
             if action == 'approve': return JsonResponse({'message': f'Request approved for {approval_request.event_id}.'}, status=200)
-            else : return JsonResponse({'message': f'Request approved for {approval_request.event_id}.'}, status=200)
+            else : return JsonResponse({'message': f'Request rejected for {approval_request.event_id}.'}, status=200)
         except ObjectDoesNotExist:
             return JsonResponse({'error': 'Approval request not found.'}, status=404)
         
@@ -478,6 +475,7 @@ def register_event(request):
             event = get_object_or_404(Event, id=event_id)
             user = get_object_or_404(User, id=user_id)
             event.attendees.add(user)
+            logger.info("user registered to the event")
             return JsonResponse({'message': 'User registered to event successfully'}, status=200)
         except: return JsonResponse({'error': 'Event not found or user already registered'}, status=404)
     return HttpResponseNotAllowed(['POST'])
@@ -498,6 +496,7 @@ def unregister_event(request):
             event = get_object_or_404(Event, id=event_id)
             user = get_object_or_404(User, id=user_id)
             event.attendees.remove(user)
+            logger.info("user unregistered to the event")
             return JsonResponse({'message': 'User Unregistered to event successfully'}, status=200)
         except: return JsonResponse({'error': 'Event not found or user already unregistered'}, status=404)
     return HttpResponseNotAllowed(['POST'])

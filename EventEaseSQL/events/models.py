@@ -30,7 +30,7 @@ class EventApproval(models.Model):
     user_id = models.IntegerField()
     action = models.CharField(max_length=10)
     created_at = models.DateTimeField(auto_now_add=True)
-    approved = models.BooleanField(null=True,blank=True,default=None)
+    approved = models.BooleanField(null=True, blank=True,default=None)
 
 class PendingEvents(models.Model):
     id = models.AutoField(primary_key=True)

@@ -11,6 +11,10 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
+import logging
+
+logger = logging.getLogger('django')
+
 def generate_jwt_token(user):
     payload = {
         'user_id': user.id,
@@ -19,6 +23,7 @@ def generate_jwt_token(user):
         'iat': datetime.utcnow(),
     }
     token = jwt.encode(payload, os.getenv('SECRET_KEY'), algorithm=os.getenv('SECRET_ALGORITHM'))
+    logger.info("token generated")
     return token
 
 def signup(request):
@@ -38,6 +43,7 @@ def signup(request):
             user = User(email=email, username=username)
             user.set_password(password)
             user.save()
+            logger.info("signup successful")
             return JsonResponse({'message': 'User created successfully'}, status=201)
         # except Exception as e:
         #     return JsonResponse({'error': 'Internal Server Error, Please try again'}, status=500)
@@ -61,6 +67,7 @@ def signin(request):
 
             if user and user.check_password(password):
                 token = generate_jwt_token(user)
+                logger.info("signin successful")
                 return JsonResponse({'token': token}, status=200)
             return JsonResponse({'error': 'Invalid credentials'}, status=400)
         # except Exception as e:

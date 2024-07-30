@@ -90,13 +90,27 @@ DATABASES = {
         'NAME': 'db',
         'USER': 'user',
         'PASSWORD': 'password',
-        'HOST': 'localhost',
-        'PORT': '5432',
+        'HOST': 'db',
+        'PORT': '3306',
         'TEST': {
             'NAME': 'test_database',  # Name for the test database
         },
     }
 }
+
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.mysql',
+#         'NAME': 'db',
+#         'USER': 'user',
+#         'PASSWORD': 'password',
+#         'HOST': 'localhost',
+#         'PORT': '3306',
+#         'TEST': {
+#             'NAME': 'test_database',  # Name for the test database
+#         },
+#     }
+# }
 
 # DATABASES = {
 #     'default': {
@@ -127,15 +141,23 @@ LOGGING = {
             'class': 'logging.StreamHandler',
             'formatter': 'verbose',
         },
+        'file': {
+            'level': 'DEBUG',
+            'class': 'logging.FileHandler',
+            'filename': os.path.join(BASE_DIR, 'django.log'),
+            'formatter': 'verbose',
+        },
     },
     'loggers': {
         'django': {
-            'handlers': ['console'],
+            'handlers': ['console', 'file'],
             'level': 'INFO',
+            'propagate': True,
         },
         'events': {
-            'handlers': ['console'],
+            'handlers': ['console', 'file'],
             'level': 'DEBUG',
+            'propagate': True,
         },
     },
 }

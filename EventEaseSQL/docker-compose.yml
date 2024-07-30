@@ -13,33 +13,41 @@ services:
     ports:
       # <Port exposed> : <MySQL Port running inside container>
       - '5432:3306'
+    
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-ppassword"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+
     expose:
       # Opens port 3306 on the container
-      - '3306'
+      - '5432'
       # Where our data will be persisted
     volumes:
       - my-db:/var/lib/mysql
 
 
-  # web:
-  #   build: .
-  #   command: >
-  #     bash -c "python /app/manage.py makemigrations &&
-  #              python /app/manage.py migrate &&
-  #              python /app/manage.py runserver 0.0.0.0:8000"
-  #   volumes:
-  #     - .:/app
-  #   ports:  
-  #     - "8000:8000"
-  #   depends_on:
-  #     - db
-  #   environment:
-  #     - DJANGO_DB_HOST=localhost
-  #     - DJANGO_DB_PORT=3306
-  #     - DJANGO_DB_NAME=db
-  #     - DJANGO_DB_USER=user
-  #     - DJANGO_DB_PASSWORD=password
+  web:
+    build: .
+    # restart: always
+    working_dir: /app
+    # network_mode: host
 
+    # command: sh -c "python /app/manage.py runserver 0.0.0.0:8000"
+    command: sh -c "python /app/manage.py makemigrations && python /app/manage.py migrate && python /app/manage.py runserver 0.0.0.0:8000"
+    
+    ports:  
+      - "8000:8000"
+
+    volumes:
+      - .:/app
+
+    depends_on:
+      db:
+        condition: service_healthy
+    
 # Names our volume
 volumes:
   my-db:
