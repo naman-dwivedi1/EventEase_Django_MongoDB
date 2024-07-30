@@ -101,6 +101,9 @@ def validate_data(data):
     if event_datetime <= current_datetime:
         return JsonResponse({'error': 'Please provide appropriate time for the event'}, status=400)
     
+    if Event.objects.filter(date=data.get('date'), time=data.get('time'), venue=data.get('venue')).exists():
+        return JsonResponse({'error': 'An event is already scheduled at this date, time, and venue.'}, status=400)
+    
     return None
 
 def validate_put_data(data,prev_event):
@@ -180,6 +183,9 @@ def validate_put_data(data,prev_event):
         event_datetime = datetime.combine(event_date, event_time)
         if event_datetime <= current_datetime:
             return JsonResponse({'error': 'Please provide appropriate time for the event'}, status=400)
+        
+    if Event.objects.filter(date=data.get('date'), time=data.get('time'), venue=data.get('venue')).exists():
+        return JsonResponse({'error': 'An event is already scheduled at this date, time, and venue.'}, status=400)
         
     return None
     
