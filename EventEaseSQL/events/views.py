@@ -559,14 +559,34 @@ def fetch_by_venue(request):
     with connection.cursor() as cursor:
         cursor.execute("SELECT * FROM events_event WHERE venue REGEXP %s", [create_subsequence_regex(venue)])
         rows = cursor.fetchall()
+        if len(rows)==0:
+            return JsonResponse({'message': "No event matching at this venue"})
         return JsonResponse(rows, safe=False)
     
 def fetch_by_title(request):
     data = json.loads(request.body)
     if 'title' not in data:
-        return JsonResponse({'error': 'Venue required to search by title'}, status=400)
+        return JsonResponse({'error': 'Title required to search by title'}, status=400)
     title=data.get('title')
     with connection.cursor() as cursor:
         cursor.execute("SELECT * FROM events_event WHERE title REGEXP %s", [create_subsequence_regex(title)])
         rows = cursor.fetchall()
+        if len(rows)==0:
+            return JsonResponse({'message': "No event matching with this title"})
+        return JsonResponse(rows, safe=False)
+    
+def fetch_by_date(request):
+    data = json.loads(request.body)
+    if 'date' not in data:
+        return JsonResponse({'error': 'Date required to search by date'}, status=400)
+    try:
+        event_date = datetime.strptime(data['date'], '%Y-%m-%d').date()
+    except:
+        return JsonResponse({'error': 'Please provide date in this format yyyy-dd-mm'}, status=400)
+    
+    with connection.cursor() as cursor:
+        cursor.execute("SELECT * FROM events_event WHERE date = %s", [event_date])
+        rows = cursor.fetchall()
+        if len(rows)==0:
+            return JsonResponse({'message': "No event matching on this date"})
         return JsonResponse(rows, safe=False)
