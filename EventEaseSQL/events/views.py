@@ -345,6 +345,7 @@ def userevent(request):
                 time=event.time,
                 organizer=event.organizer,
             )
+            
             update_data = {k: v for k, v in data.items() if k not in ['user_id', 'event_id']}
             for key, value in update_data.items():
                 setattr(pending_event, key, value)
