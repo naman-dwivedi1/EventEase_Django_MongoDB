@@ -37,8 +37,8 @@ The Event Management System is a Django-based web application that utilizes Mong
 
 1. **Clone the Repository:**
    ```bash
-   git clone https://github.com/yourusername/event-management-system.git
-   cd event-management-system
+   git clone --branch Event_Ease_SQL https://github.com/naman-dwivedi1/EventEase_Django_MongoDB.git
+   cd Event_Ease_SQL
    ```
 2. **Create a Virtual Environment:**
    ```
