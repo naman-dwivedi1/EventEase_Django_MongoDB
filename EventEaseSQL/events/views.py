@@ -1,4 +1,5 @@
 from django.shortcuts import render, redirect
+from django.db import connection
 from django.http import JsonResponse, HttpResponseNotAllowed
 from .models import Event,EventApproval,PendingEvents
 from django.utils import timezone
@@ -11,6 +12,7 @@ from django.core.exceptions import ObjectDoesNotExist
 from authentication.models import User
 from django.shortcuts import get_object_or_404
 import logging
+import re
 
 logger = logging.getLogger('django')
 
@@ -544,3 +546,27 @@ def user_events(request):
             return JsonResponse({'events': events_list}, status=200)
         except: return JsonResponse({'error': 'Event not found or user already unregistered'}, status=404)
     return HttpResponseNotAllowed(['POST'])
+
+
+def create_subsequence_regex(t):
+    return '.*'.join(map(re.escape, t))
+
+def fetch_by_venue(request):
+    data = json.loads(request.body)
+    if 'venue' not in data:
+        return JsonResponse({'error': 'Venue required to search by venue'}, status=400)
+    venue=data.get('venue')
+    with connection.cursor() as cursor:
+        cursor.execute("SELECT * FROM events_event WHERE venue REGEXP %s", [create_subsequence_regex(venue)])
+        rows = cursor.fetchall()
+        return JsonResponse(rows, safe=False)
+    
+def fetch_by_title(request):
+    data = json.loads(request.body)
+    if 'title' not in data:
+        return JsonResponse({'error': 'Venue required to search by title'}, status=400)
+    title=data.get('title')
+    with connection.cursor() as cursor:
+        cursor.execute("SELECT * FROM events_event WHERE title REGEXP %s", [create_subsequence_regex(title)])
+        rows = cursor.fetchall()
+        return JsonResponse(rows, safe=False)
