@@ -118,6 +118,24 @@ The Event Management System is a Django-based web application that utilizes Mong
 # Getting events by the date
 <img width="1440" alt="image" src="https://github.com/user-attachments/assets/bdef15d5-fb5d-43cb-85ed-7b19b81271da">
 
+# Registering in the event
+<img width="1440" alt="image" src="https://github.com/user-attachments/assets/6ee7c8fa-c7f7-4a1e-ad32-5ae0b150ce9e">
+<img width="1440" alt="image" src="https://github.com/user-attachments/assets/9a86e005-429b-428e-b433-d23af7b442bd">
+
+# Unregistering in the event
+<img width="1440" alt="image" src="https://github.com/user-attachments/assets/28f516c6-988b-43d1-be16-15baa1231a17">
+<img width="1440" alt="image" src="https://github.com/user-attachments/assets/e6b52830-ed34-4a7b-aff8-65ccfbad7bd3">
+
+# Getting the participants of an event
+<img width="1440" alt="image" src="https://github.com/user-attachments/assets/fd7b3d7a-afcc-43ad-8df5-51f52747c2d4">
+
+# Getting events of an user
+<img width="1440" alt="image" src="https://github.com/user-attachments/assets/3724cd6a-7910-4b2a-9d98-12ebff78d789">
+
+
+
+
+
 
 
 
