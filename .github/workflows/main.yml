@@ -4,7 +4,6 @@ on:
   push:
     branches:
       - main
-      - Event_Ease_SQL # Trigger deployment on push to the main branch
 
 jobs:
   deploy:
@@ -25,6 +24,7 @@ jobs:
           chmod 600 key.pem
 
           ssh -o StrictHostKeyChecking=no -i key.pem $EC2_USER@$EC2_HOST "mkdir -p /home/$EC2_USER/app"
+          
           # Upload project files to the EC2 instance
           scp -o StrictHostKeyChecking=no -i key.pem -r ./* $EC2_USER@$EC2_HOST:/home/$EC2_USER/app/
 
