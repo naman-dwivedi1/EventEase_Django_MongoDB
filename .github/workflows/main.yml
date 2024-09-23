@@ -29,7 +29,7 @@ jobs:
           scp -o StrictHostKeyChecking=no -i key.pem -r ./* $EC2_USER@$EC2_HOST:/home/$EC2_USER/app/
 
           # SSH into the EC2 instance to run the Django development server
-          ssh -o StrictHostKeyChecking=no -i key.pem $EC2_USER@$EC2_HOST << 'EOF'
+          ssh -o StrictHostKeyChecking=no -i key.pem $EC2_USER@$EC2_HOST << EOF
             # Navigate to the project directory
             cd /home/$EC2_USER/app
             
