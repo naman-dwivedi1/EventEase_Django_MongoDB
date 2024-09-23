@@ -25,7 +25,7 @@ jobs:
           chmod 600 key.pem
 
           # Upload project files to the EC2 instance
-          scp -o StrictHostKeyChecking=no -i key.pem -r . $EC2_USER@$EC2_HOST:/home/$EC2_USER/app/
+          scp -o StrictHostKeyChecking=no -i key.pem -r ./* $EC2_USER@$EC2_HOST:/home/$EC2_USER/app/
 
           # SSH into the EC2 instance to run the Django development server
           ssh -o StrictHostKeyChecking=no -i key.pem $EC2_USER@$EC2_HOST << 'EOF'
