@@ -1,0 +1,48 @@
+name: Deploy Django to EC2 (Testing)
+
+on:
+  push:
+    branches:
+      - main
+      - Event_Ease_SQL # Trigger deployment on push to the main branch
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Deploy to EC2
+        env:
+          EC2_SSH_KEY: ${{ secrets.EC2_SSH_KEY }}  # SSH private key from GitHub Secrets
+          EC2_USER: ${{ secrets.EC2_USER }}        # EC2 username (e.g., ubuntu, ec2-user)
+          EC2_HOST: ${{ secrets.EC2_HOST }}        # EC2 public IP or DNS (e.g., 12.34.56.78)
+        run: |
+          # Store SSH key and set permissions
+          echo "$EC2_SSH_KEY" > key.pem
+          chmod 600 key.pem
+
+          # Upload project files to the EC2 instance
+          scp -o StrictHostKeyChecking=no -i key.pem -r . $EC2_USER@$EC2_HOST:/home/$EC2_USER/app/
+
+          # SSH into the EC2 instance to run the Django development server
+          ssh -o StrictHostKeyChecking=no -i key.pem $EC2_USER@$EC2_HOST << 'EOF'
+            # Navigate to the project directory
+            cd /home/$EC2_USER/app
+            
+            # Ensure Python and virtual environment are installed
+            python3 -m venv venv
+            source venv/bin/activate
+
+            # Install dependencies
+            pip install --upgrade pip
+            pip install -r requirements.txt
+
+            # Apply Django migrations
+            python manage.py migrate
+
+            # Run the Django development server
+            nohup python manage.py runserver 0.0.0.0:8000 &
+          EOF
