@@ -38,6 +38,7 @@ jobs:
             source venv/bin/activate
 
             # Install dependencies
+            cd app
             pip install --upgrade pip
             pip install -r requirements.txt
 
