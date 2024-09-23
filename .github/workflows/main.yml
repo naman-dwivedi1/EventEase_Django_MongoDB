@@ -3,7 +3,7 @@ name: Deploy Django to EC2 (Testing)
 on:
   push:
     branches:
-      - main
+      - Event_Ease_SQL
 
 jobs:
   deploy:
